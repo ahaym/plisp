@@ -7,9 +7,9 @@ data LVal
     | LString String
     | LList [LVal]
     | Quote LVal
-    | Lambda [String] LVal
+    -- | Lambda [String] LVal
     | If LVal LVal LVal
-    | Let String LVal LVal
+    | Let String LVal LVal -- TODO: Multi-name let
     deriving (Eq, Show)
 
 data Stmt
