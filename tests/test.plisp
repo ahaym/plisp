@@ -1,0 +1,52 @@
+;; A bunch of short tests that should succeed
+
+"meow"
+
+1
+
+(quote (1 2 3))
+
+'(3 2 1)
+
+(define numCats 69)
+
+numCats
+
+(if (eq numCats 69)
+    (trace "nice" ()) ;; haha
+    ;;haha
+    (trace "not nice" ())
+    )
+
+(defun neq (a b)
+    (if (eq (a b))
+        0
+        1
+        )
+    )
+
+(+ 2 2)
+
+(let a 2 (+ 0 a))
+
++
+
+-
+
+/
+
+*
+
+atos
+
+stoa
+
+car
+
+cdr
+
+cons
+
+trace
+
+eq

@@ -1,8 +1,11 @@
 module Lang where
 
+import Data.Map.Strict (Map)
+
 data LVal
     = Ident String
     | SF StdFunc
+    | Func (Map String LVal) [String]
     | LNum Int
     | LString String
     | LList [LVal]
