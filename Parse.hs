@@ -1,8 +1,9 @@
 module Parse where
 
 import Control.Applicative hiding (many)
-import Control.Monad (guard)
+import Control.Monad (guard, void)
 import Data.Char
+import Data.Maybe
 import Text.ParserCombinators.ReadP
 import Text.Read.Lex hiding (Ident)
 
@@ -13,7 +14,8 @@ parensed p = char '(' *> skipSpaces *> p <* skipSpaces <* char ')'
 
 wsp :: ReadP ()
 wsp = do
-    many1 $ satisfy (\c -> c == ' ' || c == '\n')
+    many1 $ void (satisfy (\c -> c == ' ' || c == '\n'))
+        <|> void parseComment
     return ()
 
 libWords :: [(String, StdFunc)]
@@ -28,6 +30,7 @@ libWords =
     , ("cdr",Cdr)
     , ("cons",Cons)
     , ("trace",Trace)
+    , ("eq", Equals)
     ]
 
 keywords :: [String]
@@ -46,10 +49,20 @@ parseAtom = do
     return a
 
 parseProgram :: ReadP [Stmt]
-parseProgram = sepBy parseStmt skipSpaces <* skipSpaces <* eof
+parseProgram = fmap catMaybes $ 
+    sepBy parseStmt (many1 $ char '\n')<* skipSpaces <* eof
 
-parseStmt :: ReadP Stmt
-parseStmt = parseDefine <|> parseDefun <|> (LV <$> parseLV)
+parseStmt :: ReadP (Maybe Stmt)
+parseStmt = (Just <$> parseDefine) 
+    <|> (Just <$> parseDefun) 
+    <|> (Just . LV <$> parseLV) 
+    <|> parseComment
+
+parseComment :: ReadP (Maybe Stmt)
+parseComment = do
+    string ";;"
+    munch (/='\n')
+    return Nothing
 
 parseDefine :: ReadP Stmt
 parseDefine = parensed $ do
@@ -89,7 +102,8 @@ parseL :: ReadP LVal
 parseL = parensed (LList <$> sepBy parseLV wsp)
 
 parseQ :: ReadP LVal
-parseQ = parensed $ fmap Quote (string "quote" >> wsp >> parseLV) 
+parseQ = parensed (fmap Quote (string "quote" >> wsp >> parseLV))
+    <|> (char '\'' >> Quote <$> parseLV)
 
 parseIf :: ReadP LVal
 parseIf = parensed $ do
@@ -112,3 +126,11 @@ parseLet = parensed $ do
     wsp
     y <- parseLV
     return $ Let n x y
+
+runP :: String -> Maybe [Stmt]
+runP s = case readP_to_S parseProgram s of
+    [lv] -> Just $ fst lv
+    _ -> Nothing
+
+runPF:: FilePath -> IO (Maybe [Stmt])
+runPF f = runP <$> readFile f

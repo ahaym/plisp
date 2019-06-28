@@ -29,4 +29,5 @@ data StdFunc
     | Cdr
     | Cons
     | Trace
+    | Equals
     deriving (Eq, Show)
