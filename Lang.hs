@@ -5,7 +5,7 @@ import Data.Map.Strict (Map)
 data LVal
     = Ident String
     | SF StdFunc
-    | Func (Map String LVal) [String]
+    | Func (Map String LVal) [String] LVal
     | LNum Int
     | LString String
     | LList [LVal]
