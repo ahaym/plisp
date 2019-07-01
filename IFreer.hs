@@ -40,8 +40,8 @@ instance MonadState (M.Map String LVal) (Freer Interpreter) where
     get = getTab
     put = putTab
 
-interpIO :: Bool -> Interpreter a -> StateT SymTab IO a
-interpIO pv = go
+interpIO :: Bool -> IM a -> IO a
+interpIO pv prog = evalStateT (runFreer prog go) M.empty
     where
         go :: Interpreter a -> StateT SymTab IO a
         go GetTab = get
@@ -49,8 +49,8 @@ interpIO pv = go
         go (PutLV x) = when pv $ liftIO (print x)
         go (TraceLV x) = liftIO $ print x
 
-interpPure :: Interpreter a -> StateT SymTab (Writer [Either LVal LVal]) a
-interpPure = go
+interpPure :: IM a -> [Either LVal LVal]
+interpPure prog = snd . runWriter $ runStateT (runFreer prog go) M.empty
     where
         go :: Interpreter a -> StateT SymTab (Writer [Either LVal LVal]) a
         go GetTab = get
