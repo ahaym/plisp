@@ -19,7 +19,8 @@ exec (Define n l) = do
     putLV $ LString (show tab)
 exec (Defun n args l) = do
     tab <- get
-    modify' $ M.insert n (Func tab args l)
+    let tab' = M.insert n (Func tab' args l) tab
+    put tab'
 
 execProgram :: [Stmt] -> IM ()
 execProgram = mapM_ exec
